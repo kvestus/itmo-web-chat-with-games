@@ -1,0 +1,7 @@
+*{
+    transition: background-color .2s;
+}
+
+html, body{
+    overflow-x: hidden;
+}
