@@ -1,28 +1,26 @@
 <template>
-    <div>
-        <div class="d-flex">
-            <div class="mobile-sidebar-container"><CabinetSidebarMobile /></div>
-            <div class="sidebar-container">
-                <CabinetSidebar />
-            </div>
-            <div class="cabinet-body">
-                <b-overlay :show="state == 'loading'" rounded="sm">
-                    <template #overlay>
-                        <div class="text-center">
-                            <b-icon
-                                icon="stopwatch"
-                                font-scale="3"
-                                animation="cylon"
-                            ></b-icon>
-                            <p id="cancel-label">Please wait...</p>
-                        </div>
-                    </template>
-                    <div v-if="state != 'loading'">
-                        <CabinetHeader />
-                        <nuxt />
+    <div class="d-flex">
+        <div class="mobile-sidebar-container"><CabinetSidebarMobile /></div>
+        <div class="sidebar-container">
+            <CabinetSidebar />
+        </div>
+        <div class="cabinet-body">
+            <b-overlay :show="state == 'loading'" rounded="sm">
+                <template #overlay>
+                    <div class="text-center">
+                        <b-icon
+                            icon="stopwatch"
+                            font-scale="3"
+                            animation="cylon"
+                        ></b-icon>
+                        <p id="cancel-label">Please wait...</p>
                     </div>
-                </b-overlay>
-            </div>
+                </template>
+                <div v-if="state != 'loading'">
+                    <CabinetHeader />
+                    <nuxt />
+                </div>
+            </b-overlay>
         </div>
     </div>
 </template>

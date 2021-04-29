@@ -8,13 +8,13 @@ export default $axios => ({
     },
 
     getUserData() {
-        return Promise.resolve({
+        /*return Promise.resolve({
             uid: '123',
             firstName: 'Sasha',
             lastName: 'Chernigin',
             email: 'email@mail.ru'
-        })
-        //return $axios.$get(`/${resource}`)
+        })*/
+        return $axios.$get(`/${resource}`)
     },
 
     update(userModel) {
