@@ -15,6 +15,9 @@ export const userMixin = {
             if (!this.checkCurrentUser()) return '@'
             return this.currentUser.email.split('@')[0]
         },
+        currentUserEmail() {
+            return this.currentUser.email
+        },
         currentUserFullName() {
             if (!this.checkCurrentUser()) return ''
             if (

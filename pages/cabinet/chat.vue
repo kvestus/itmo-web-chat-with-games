@@ -57,9 +57,10 @@
                             class="mt-2 mx-auto"
                             :id="'dropdown-1'"
                             :text="client.email"
+                            :disabled="client.email != currentUserEmail"
                         >
-                            <b-dropdown-item>
-                                Figth
+                            <b-dropdown-item @click="goTicTacToe(client.uid)">
+                                Figth Tic Tac Toe
                             </b-dropdown-item>
                         </b-dropdown>
                     </div>
@@ -105,7 +106,7 @@ export default {
     methods: {
         initChatConnection() {
             this.connection = new HubConnectionBuilder()
-                .withUrl('http://192.168.0.101:6002/chatHub', {
+                .withUrl('http://localhost:6002/chatHub', {
                     accessTokenFactory: () => this._userToken
                 })
                 .configureLogging(LogLevel.None)
@@ -156,6 +157,16 @@ export default {
                         this.messageText = ''
                     })
             }
+        },
+        goTicTacToe(uid) {
+            this.$repositories['ticTacToe']
+                .add({
+                    user1Uid: this.currentUserUid,
+                    user2Uid: uid
+                })
+                .then(roomId => {
+                    this.$nuxt.$router.push(`tictactoe/${roomId}`)
+                })
         }
     },
     created() {
