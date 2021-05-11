@@ -13,19 +13,58 @@
             </template>
             <div v-if="state != 'loading'">
                 <b-row>
-                    <b-col cols="8">
-                        <b-row v-for="x in 3" :key="'x' + x">
+                    <b-col v-if="!room.finished" md="8" cols="12">
+                        <b-row v-for="y in 3" :key="'y' + y">
                             <b-col
                                 cols="4"
-                                v-for="y in 3"
-                                :key="'y' + x + y"
+                                v-for="x in 3"
+                                :key="'x' + x + y"
                                 class="p-0"
+                                :class="'cell-' + (x + (y - 1) * 3)"
+                                @click="move(x, y)"
                             >
-                                <div class="game-block">{{ x }},{{ y }}</div>
+                                <div
+                                    class="game-block"
+                                    :class="
+                                        cellValues[`${x}-${y}`] == 0 &&
+                                        isMyTurnToWalk
+                                            ? 'active'
+                                            : ''
+                                    "
+                                >
+                                    <span v-if="cellValues[`${x}-${y}`] == 0">
+                                    </span>
+                                    <span
+                                        v-if="cellValues[`${x}-${y}`] == 1"
+                                        style="font-size: 35px;"
+                                    >
+                                        ×
+                                    </span>
+                                    <span
+                                        v-if="cellValues[`${x}-${y}`] == 2"
+                                        style="font-size: 35px;"
+                                    >
+                                        o
+                                    </span>
+                                </div>
                             </b-col>
                         </b-row>
                     </b-col>
-                    <b-col cols="4" class="chat-clients text-right">
+                    <b-col
+                        v-else
+                        md="8"
+                        cols="12"
+                        class="d-flex align-items-center justify-content-center mb-md-0 mb-4"
+                        ><b
+                            >Finished, winner:
+                            {{
+                                room.user1Uid == room.winnerUid
+                                    ? 'User-1'
+                                    : 'User-2'
+                            }}</b
+                        ></b-col
+                    >
+                    <b-col md="4" cols="12" class="chat-clients text-right">
                         <div>
                             <div class="text-center"><b>Players</b></div>
                             <div
@@ -69,12 +108,23 @@ export default {
                 winnerUid: null
             },
             moves: [
-                {
+                /*{
                     positionX: 1,
                     positionY: 1,
                     createdBy: '1'
-                }
+                }*/
             ],
+            cellValues: {
+                '1-1': 0,
+                '1-2': 0,
+                '1-3': 0,
+                '2-1': 0,
+                '2-2': 0,
+                '2-3': 0,
+                '3-1': 0,
+                '3-2': 0,
+                '3-3': 0
+            },
             clients: [
                 /*{
                     id: 1,
@@ -96,7 +146,7 @@ export default {
     },
     computed: {
         subTitle() {
-            return `Bonjour ${this.currentUserFirstName}`
+            return `GL HF`
         },
         roomId() {
             return Number(this.$nuxt._route.params.id)
@@ -110,12 +160,21 @@ export default {
             return this.clients.filter(
                 x => x.uid != this.room.user1Uid && x.uid != this.room.user2Uid
             )
+        },
+        isMyTurnToWalk() {
+            return (
+                (this.moves.length == 0 &&
+                    this.room.user1Uid == this.currentUserUid) ||
+                (this.moves.length > 0 &&
+                    this.moves[this.moves.length - 1].createdBy !=
+                        this.currentUserUid)
+            )
         }
     },
     methods: {
         initChatConnection() {
             this.connection = new HubConnectionBuilder()
-                .withUrl('http://localhost:6002/ticTacToeHub', {
+                .withUrl('http://192.168.0.101:6002/ticTacToeHub', {
                     accessTokenFactory: () => this._userToken
                 })
                 .configureLogging(LogLevel.None)
@@ -126,6 +185,7 @@ export default {
                 this.room = data.room
                 this.moves = data.moves
                 this.clients = data.clients
+                this.calculateCellValues()
                 this.state = 'true'
             })
 
@@ -142,6 +202,7 @@ export default {
 
             this.connection.on('UserMove', move => {
                 this.moves.push(move)
+                this.calculateCellValues()
             })
 
             this.connection.on('Finish', data => {
@@ -154,6 +215,7 @@ export default {
             })
         },
         move(x, y) {
+            if (!this.isMyTurnToWalk) return
             this.connection.invoke(
                 'GoMove',
                 this.room.id,
@@ -164,6 +226,12 @@ export default {
         },
         joinToRoom() {
             this.connection.invoke('JoinToRoom', this.roomId)
+        },
+        calculateCellValues() {
+            for (var move of this.moves) {
+                this.cellValues[`${move.positionX}-${move.positionY}`] =
+                    move.createdBy == this.room.user1Uid ? 1 : 2
+            }
         }
     },
     created() {
@@ -181,11 +249,17 @@ export default {
 <style lang="less" scoped>
 .game-block {
     min-height: 100px;
-    cursor: pointer;
-    border: black solid 1px;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.game-block.active {
+    cursor: pointer;
+}
+
+.game-block.active:hover {
+    background: rgba(134, 134, 134, 0.24);
 }
 
 .chat-clients {
@@ -196,5 +270,23 @@ export default {
 .chat-user {
     overflow: hidden;
     text-align: center;
+}
+
+.cell-1,
+.cell-2,
+.cell-3,
+.cell-4,
+.cell-5,
+.cell-6 {
+    border-bottom: black solid 1px;
+}
+
+.cell-1,
+.cell-2,
+.cell-4,
+.cell-5,
+.cell-7,
+.cell-8 {
+    border-right: black solid 1px;
 }
 </style>

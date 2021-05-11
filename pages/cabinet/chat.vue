@@ -12,8 +12,8 @@
                 </div>
             </template>
             <div v-if="state != 'loading'">
-                <div class="d-flex">
-                    <div class="col-8">
+                <b-row>
+                    <b-col md="8" cols="12" class="mb-md-0 mb-4">
                         <div>
                             <div
                                 v-for="(message, index) in messages"
@@ -48,8 +48,12 @@
                                 <b-icon icon="chat" class="icon" />
                             </div>
                         </div>
-                    </div>
-                    <div class="col-4 chat-clients text-right">
+                    </b-col>
+                    <b-col
+                        md="4"
+                        cols="12"
+                        class="chat-clients text-right mb-md-0 mb-4"
+                    >
                         <div class="text-center"><b>Clients</b></div>
                         <b-dropdown
                             v-for="(client, index) in clients"
@@ -57,14 +61,14 @@
                             class="mt-2 mx-auto"
                             :id="'dropdown-1'"
                             :text="client.email"
-                            :disabled="client.email != currentUserEmail"
+                            :disabled="client.email == currentUserEmail"
                         >
                             <b-dropdown-item @click="goTicTacToe(client.uid)">
                                 Figth Tic Tac Toe
                             </b-dropdown-item>
                         </b-dropdown>
-                    </div>
-                </div>
+                    </b-col>
+                </b-row>
             </div>
         </b-overlay>
     </CabinetContentTemplate>
@@ -106,7 +110,7 @@ export default {
     methods: {
         initChatConnection() {
             this.connection = new HubConnectionBuilder()
-                .withUrl('http://localhost:6002/chatHub', {
+                .withUrl('http://192.168.0.101:6002/chatHub', {
                     accessTokenFactory: () => this._userToken
                 })
                 .configureLogging(LogLevel.None)
@@ -142,6 +146,10 @@ export default {
                 )
             })
 
+            this.connection.on('GoTicTacToe', roomId => {
+                this.$nuxt.$router.push(`tictactoe/${roomId}`)
+            })
+
             this.connection.start()
         },
         sendMessage() {
@@ -165,7 +173,9 @@ export default {
                     user2Uid: uid
                 })
                 .then(roomId => {
-                    this.$nuxt.$router.push(`tictactoe/${roomId}`)
+                    this.connection.invoke('GoTicTacToe', roomId, uid).then(() => {
+                        this.$nuxt.$router.push(`tictactoe/${roomId}`)
+                    })
                 })
         }
     },

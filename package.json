@@ -5,7 +5,7 @@
   "author": "Sasha <sasha.chernigin@mail.ru>",
   "private": true,
   "scripts": {
-    "dev": "nuxt --hostname localhost --port 13002",
+    "dev": "nuxt --hostname 192.168.0.101 --port 13002",
     "build": "nuxt build",
     "start": "nuxt start",
     "build:modern": "nuxt build --modern=server",

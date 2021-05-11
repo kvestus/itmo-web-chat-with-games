@@ -47,6 +47,7 @@ export default {
     computed: {
         title() {
             var el = this.$route.path.split('/')
+            if (el[el.length - 2] == 'tictactoe') return 'Tic-tac-toe'
             var str = el[el.length - 1]
             if (str && str.length > 0)
                 return str[0].toUpperCase() + str.substring(1)
