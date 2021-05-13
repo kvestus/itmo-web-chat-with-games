@@ -14,6 +14,15 @@
             <div v-if="state != 'loading'">
                 <b-row>
                     <b-col v-if="!room.finished" md="8" cols="12">
+                        <div class="text-center mb-3">
+                            <span
+                                v-if="isMyTurnToWalk"
+                                class="text-success turn-label"
+                                ><b>Your turn</b></span
+                            ><span v-else class="text-danger turn-label"
+                                >Opponent's turn</span
+                            >
+                        </div>
                         <b-row v-for="y in 3" :key="'y' + y">
                             <b-col
                                 cols="4"
@@ -288,5 +297,9 @@ export default {
 .cell-7,
 .cell-8 {
     border-right: black solid 1px;
+}
+
+.turn-label {
+    font-size: 25px;
 }
 </style>
