@@ -24,7 +24,28 @@
                                         : ''
                                 "
                                 class="d-flex"
+                                style="position: relative;"
                             >
+                                <div
+                                    v-if="message.createdBy != currentUserUid"
+                                    class="after"
+                                    :style="{
+                                        'border-right-color': `rgba(${
+                                            getColorByUid(message.createdBy)[0]
+                                        }, ${
+                                            getColorByUid(message.createdBy)[1]
+                                        }, ${
+                                            getColorByUid(message.createdBy)[2]
+                                        }, 0.705)`,
+                                        'border-bottom-color': `rgba(${
+                                            getColorByUid(message.createdBy)[0]
+                                        }, ${
+                                            getColorByUid(message.createdBy)[1]
+                                        }, ${
+                                            getColorByUid(message.createdBy)[2]
+                                        }, 0.705)`
+                                    }"
+                                ></div>
                                 <div
                                     class="message-item"
                                     :class="
@@ -32,10 +53,27 @@
                                             ? 'mine'
                                             : ''
                                     "
+                                    :style="{
+                                        background: `rgba(${
+                                            getColorByUid(message.createdBy)[0]
+                                        }, ${
+                                            getColorByUid(message.createdBy)[1]
+                                        }, ${
+                                            getColorByUid(message.createdBy)[2]
+                                        }, 0.705)`
+                                    }"
                                 >
                                     <span style="white-space: pre-line">{{
                                         message.messageText
                                     }}</span>
+                                    <div
+                                        class="author"
+                                        v-if="
+                                            message.createdBy != currentUserUid
+                                        "
+                                    >
+                                        {{ userNames[message.createdBy] }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -49,11 +87,20 @@
                         <b-dropdown
                             v-for="(client, index) in clients"
                             :key="index + 'chat-user'"
-                            class="mt-2 mx-auto"
-                            :id="'dropdown-1'"
-                            :text="client.email"
+                            class="mt-2 mx-auto chat-user"
+                            :id="'dropdown-' + index"
                             :disabled="client.email == currentUserEmail"
+                            :style="{
+                                background: `rgba(${
+                                    getColorByUid(client.uid)[0]
+                                }, ${getColorByUid(client.uid)[1]}, ${
+                                    getColorByUid(client.uid)[2]
+                                }, 0.705)`
+                            }"
                         >
+                            <template #button-content>
+                                {{ client.email }}
+                            </template>
                             <b-dropdown-item @click="goTicTacToe(client.uid)">
                                 Figth Tic Tac Toe
                             </b-dropdown-item>
@@ -98,6 +145,9 @@ export default {
                 { messageText: 'Welcome to chat', userId: 0 },
                 { messageText: 'Welcome to chat', userId: 0 }
             ],
+            userNames: {
+                // "uid": "name / email"
+            },
             messageText: '',
             state: 'loading'
         }
@@ -108,7 +158,7 @@ export default {
         }
     },
     methods: {
-        initChatConnection() {
+        async initChatConnection() {
             this.connection = new HubConnectionBuilder()
                 .withUrl('http://192.168.0.101:6002/chatHub', {
                     accessTokenFactory: () => this._userToken
@@ -179,12 +229,24 @@ export default {
                             this.$nuxt.$router.push(`tictactoe/${roomId}`)
                         })
                 })
+        },
+        getColorByUid(uid) {
+            if (!this.cacheColors) this.cacheColors = {}
+            if (this.cacheColors[uid]) return this.cacheColors[uid]
+            let sum = 0
+            for (let i = 0; i < uid.length; i++) sum += uid.charCodeAt(i)
+            let answer = [sum % 123, sum % 782, sum % 222]
+            this.cacheColors[uid] = answer
+            return answer
         }
     },
     created() {
         this.clients = []
         if (process.browser) {
-            this.initChatConnection()
+            this.$repositories['users'].getUserNames().then(data => {
+                this.userNames = data
+                this.initChatConnection()
+            })
         }
     },
     beforeDestroy() {
@@ -207,17 +269,17 @@ export default {
     &.mine {
         align-self: flex-end;
         border-radius: 10px 10px 0 10px;
-        background: rgba(160, 227, 248, 0.705);
+        background: rgba(160, 227, 248, 0.705) !important;
     }
 }
 
-.message-item::after {
+.after {
     content: '';
     width: 10px;
     height: 10px;
     position: absolute;
-    bottom: -1px;
-    left: -21px;
+    bottom: 20px;
+    left: -20px;
     border: 10px solid transparent;
     border-right: 10px solid rgba(58, 189, 230, 0.705);
     border-bottom: 10px solid rgba(58, 189, 230, 0.705);
@@ -266,10 +328,21 @@ export default {
 .chat-user {
     overflow: hidden;
     text-align: center;
+
+    :first-child {
+        background: unset;
+    }
 }
 
 .chat-container {
-    max-height: calc(100vh - 40px - 36px - 24px - 30px);
-    overflow: scroll;
+    max-height: calc(100vh - 40px - 36px - 24px - 30px - 40px);
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.author {
+    font-size: 10px;
+    margin-bottom: -15px;
+    color: white;
 }
 </style>
