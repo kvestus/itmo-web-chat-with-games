@@ -118,6 +118,29 @@
                 </b-row>
             </div>
         </b-overlay>
+        <b-modal
+            v-model="modalShow"
+            title="Invite to Tic-Tac-Toe"
+            @hidden="
+                replyToInvitationToTicTacToe(
+                    false,
+                    invites[0].userUid,
+                    invites[0].roomId
+                )
+            "
+            @ok="
+                replyToInvitationToTicTacToe(
+                    true,
+                    invites[0].userUid,
+                    invites[0].roomId
+                )
+            "
+        >
+            <p class="my-4" v-if="invites.length > 0">
+                User {{ invites[0].userEmail }} invite you to fight in
+                tic-tac-toe.
+            </p>
+        </b-modal>
     </CabinetContentTemplate>
 </template>
 
@@ -148,6 +171,7 @@ export default {
             userNames: {
                 // "uid": "name / email"
             },
+            invites: [],
             messageText: '',
             state: 'loading'
         }
@@ -155,6 +179,9 @@ export default {
     computed: {
         subTitle() {
             return `Bonjour ${this.currentUserFirstName}`
+        },
+        modalShow() {
+            return this.invites.length > 0
         }
     },
     methods: {
@@ -200,6 +227,10 @@ export default {
                 this.$nuxt.$router.push(`tictactoe/${roomId}`)
             })
 
+            this.connection.on('InviteToTicTacToe', obj => {
+                this.invites.push(obj)
+            })
+
             this.connection.start()
         },
         sendMessage() {
@@ -223,12 +254,17 @@ export default {
                     user2Uid: uid
                 })
                 .then(roomId => {
-                    this.connection
-                        .invoke('GoTicTacToe', roomId, uid)
-                        .then(() => {
-                            this.$nuxt.$router.push(`tictactoe/${roomId}`)
-                        })
+                    this.connection.invoke('InviteToTicTacToe', roomId, uid)
                 })
+        },
+        replyToInvitationToTicTacToe(answer, userUid, roomId) {
+            console.log('replyToInvitationToTicTacToe', answer, roomId)
+            this.connection.invoke(
+                'ReplyToInvitationToTicTacToe',
+                roomId,
+                userUid,
+                answer
+            )
         },
         getColorByUid(uid) {
             if (!this.cacheColors) this.cacheColors = {}
