@@ -13,7 +13,7 @@
             </template>
             <div v-if="state != 'loading'">
                 <b-row>
-                    <b-col md="8" cols="12" class="mb-md-0 mb-4">
+                    <b-col md="8" cols="12" class="mb-md-0 mb-4 chat-container">
                         <div>
                             <div
                                 v-for="(message, index) in messages"
@@ -39,20 +39,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="d-flex send-message-container">
-                            <b-form-input
-                                v-model="messageText"
-                                placeholder="Write a message..."
-                            ></b-form-input>
-                            <div class="icon" @click="sendMessage">
-                                <b-icon icon="chat" class="icon" />
-                            </div>
-                        </div>
                     </b-col>
                     <b-col
                         md="4"
                         cols="12"
-                        class="chat-clients text-right mb-md-0 mb-4"
+                        class="chat-clients text-right mb-md-0"
                     >
                         <div class="text-center"><b>Clients</b></div>
                         <b-dropdown
@@ -68,6 +59,15 @@
                             </b-dropdown-item>
                         </b-dropdown>
                     </b-col>
+                    <div class="d-flex send-message-container">
+                        <b-form-input
+                            v-model="messageText"
+                            placeholder="Write a message..."
+                        ></b-form-input>
+                        <div class="icon" @click="sendMessage">
+                            <b-icon icon="chat" class="icon" />
+                        </div>
+                    </div>
                 </b-row>
             </div>
         </b-overlay>
@@ -173,9 +173,11 @@ export default {
                     user2Uid: uid
                 })
                 .then(roomId => {
-                    this.connection.invoke('GoTicTacToe', roomId, uid).then(() => {
-                        this.$nuxt.$router.push(`tictactoe/${roomId}`)
-                    })
+                    this.connection
+                        .invoke('GoTicTacToe', roomId, uid)
+                        .then(() => {
+                            this.$nuxt.$router.push(`tictactoe/${roomId}`)
+                        })
                 })
         }
     },
@@ -236,9 +238,10 @@ export default {
 
 .send-message-container {
     border-top: black solid 1px;
-    left: -20px;
-    position: relative;
-    width: calc(100% + 20px);
+    left: 0;
+    bottom: 0;
+    position: fixed;
+    width: 100%;
 
     input {
         border: none;
@@ -257,10 +260,16 @@ export default {
 .chat-clients {
     overflow-x: hidden;
     overflow-y: auto;
+    margin-bottom: 100px;
 }
 
 .chat-user {
     overflow: hidden;
     text-align: center;
+}
+
+.chat-container {
+    max-height: calc(100vh - 40px - 36px - 24px - 30px);
+    overflow: scroll;
 }
 </style>
