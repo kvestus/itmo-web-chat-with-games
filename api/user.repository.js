@@ -19,5 +19,9 @@ export default $axios => ({
 
     update(userModel) {
         return $axios.$put(`/${resource}`, userModel)
+    },
+
+    getUserNames() {
+        return $axios.$get(`/${resource}/getUserNames`)
     }
 })
